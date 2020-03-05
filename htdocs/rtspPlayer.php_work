@@ -1,0 +1,102 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+<meta content="" name="description" />
+<meta content="" name="author" />
+<title></title>
+<style>
+body {
+	position: absolute;
+	top: 0px;
+	right: 0px;
+	bottom: 0px;
+	left: 0px;
+}
+</style>
+
+<script type='text/javascript' src='http://10.13.50.26:3310/js/jquery.js'></script>
+
+</head>
+<body onload="window.focus();">
+
+<!--embed type="application/x-vlc-plugin" pluginspage="http://www.videolan.org" id="vlcPlayer" width="100%" height="100%" /-->
+	
+<!--object id="vlcPlayer" classid="clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921" width="100%" height="100%">
+	<param name="autostart" value="false" />
+	<param name="allowfullscreen" value="true" />
+	<param name="controls" value="false" />
+</object-->
+
+<script type="text/javascript">
+
+	$(function() {
+		
+		console.log('popup Init');
+		
+		
+		var support = true;
+		var target=$('body');
+		var cctvInfo = JSON.parse(localStorage.getItem('cctvInfo'));
+		console.log('cctvInfo Data Check');
+		
+		// CCTV 이름으로 팝업 태이틀 설정
+		if(cctvInfo.cctvnm != "") {
+			document.title = cctvInfo.cctvnm;
+		}
+
+		switch(cctvInfo.cctv_use_fl) {
+
+			case 'Y':
+
+				if (navigator.userAgent.toLowerCase().indexOf("msie") != -1){
+					
+					target.append('<object type = "application/x-vlc-plugin" version = "VideoLAN.VLCPlugin.2" classid = "clsid:9BE31822-FDAD-461B-AD51-BE1D1C159921" events = "true" id = "vlcPlayer"></object>');
+				} else if (navigator.userAgent.toLowerCase().indexOf("msie") == -1) {
+					target.append('<embed type = "application/x-vlc-plugin"' + 'class="vlc_plugin" pluginspage="http://www.videolan.org"' + 'version="VideoLAN.VLCPlugin.2"  width="100%" height="100%" id="vlcPlayer" autostart="false" allowfullscreen="true" controls="false"></embed>');
+				} else {
+					support = false;
+					target.append('Error: browser not supported!');
+				}
+
+				if (support) {
+
+					var vlc = document.getElementById('vlcPlayer');
+					console.log('vlcPlayer Obj Find');
+
+					if (vlc) {
+
+						var addr = 'rtsp://' + cctvInfo.id + ':' + cctvInfo.pwd + '@' + cctvInfo.ip + ':' + cctvInfo.port + '/cam/realmonitor?channel=1&subtype=0';
+						var options = new Array(':network-caching=300'); /* set additional vlc--options */
+
+						console.log('vlcPlayer Manual Control :: Start');
+						
+						try {
+							//vlc.playlist.add('rtsp://admin:rkdtjrn1!@10.13.132.25:554');
+							vlc.playlist.items.clear();
+							var id = vlc.playlist.add(addr, '', options);							
+							vlc.playlist.playItem(id);
+							console.log('[RTSP] play.');
+						} catch (e) {
+
+							console.log('Error : ' + e + '<br>URL : ' + addr);
+						}
+
+						console.log('vlcPlayer Manual Control :: End');
+					}
+				}
+				break;
+			case 'N':
+
+				alert('사용불가 CCTV 입니다.');
+				console.log('[RTSP] play fail');
+				break;
+			default:
+				break;
+		}
+	});
+</script>
+</body>
+</html>
